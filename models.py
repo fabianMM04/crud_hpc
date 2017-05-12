@@ -28,6 +28,24 @@ class Herramienta(Base):
            'parametros'         : self.parametros,
        }
 
+class Proyecto(Base):
+    __tablename__ = 'proyecto'
+
+    nombre = Column(String(250), nullable=False)
+    id = Column(Integer, primary_key=True)
+    descripcion = Column(String(250))
+    
+
+
+    #We added this serialize function to be able to send JSON objects in a serializable format
+    @property
+    def serialize(self):
+
+       return {
+           'nombre'         : self.nombre,
+           'descripcion'         : self.descripcion,
+           'id'         : self.id,
+       }
 
 engine = create_engine('sqlite:///lista_herramienta.db')
 
