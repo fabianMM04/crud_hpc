@@ -1,7 +1,10 @@
-from flask import Flask, jsonify,  render_template, request, redirect, url_for
+import os
+from flask import Flask, jsonify,  render_template, request, redirect, url_for, send_from_directory, redirect
+from werkzeug import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Herramienta, Proyecto
+from archivo import crear
 import subprocess
 app = Flask(__name__)
  
@@ -125,7 +128,7 @@ def HelloP():
 
     return output
 
-@app.route('/estado')
+@app.route('/condor/estado')
 def estado():
     cmd = ["condor_status"]
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
@@ -135,7 +138,7 @@ def estado():
     out,err = p.communicate()
     return out
 
-@app.route('/cola')
+@app.route('/condor/cola')
 def cola():
     cmd = ["condor_q"]
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
@@ -145,10 +148,59 @@ def cola():
     out,err = p.communicate()
     return out
 
+app.config['UPLOAD_FOLDER'] = ''
+# These are the extension that we are accepting to be uploaded
+app.config['ALLOWED_EXTENSIONS'] = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'py','cpp'])
 
-@app.route('/ejecucion/')
+# For a given file, return whether it's an allowed type or not
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/condor/file')
+def student():
+   return render_template("formulario.html")
+
+@app.route('/upload')
+def upload():
+   return render_template('upload.html')
+
+@app.route('/uploader', methods=['POST'])
+def uploader():
+    # Get the name of the uploaded file
+    file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+    if file and allowed_file(file.filename):
+        # Make the filename safe, remove unsupported chars
+        filename = secure_filename(file.filename)
+        # Move the file form the temporal folder to
+        # the upload folder we setup
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Redirect the user to the uploaded_file route, which
+        # will basicaly show on the browser the uploaded file
+        return redirect(url_for('uploaded_file',filename=filename))
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
+
+
+
+@app.route('/condor/crear',methods = ['POST', 'GET'])
+def result():
+   if request.method == 'POST':
+      executable = request.form['executable']
+      universe = request.form['universe']
+      inputt = request.form['input']
+      output = request.form['output']
+      crear(executable, universe, inputt, output)
+
+      return render_template("result.html",executable = executable,universe=universe, inputt=inputt, output=output)
+
+@app.route('/condor/ejecucion/')
 def ejecucion():
-    cmd = ["./fabian"]
+    cmd = ["condor_submit","foot.submit"]
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             stdin=subprocess.PIPE)

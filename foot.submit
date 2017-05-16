@@ -1,0 +1,4 @@
+executable = ejecucion1.py
+universe = vanilla
+input = ejecucion1.input
+output = ejecucion1.output

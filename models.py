@@ -35,6 +35,7 @@ class Proyecto(Base):
     id = Column(Integer, primary_key=True)
     descripcion = Column(String(250))
     
+    
 
 
     #We added this serialize function to be able to send JSON objects in a serializable format
@@ -45,6 +46,7 @@ class Proyecto(Base):
            'nombre'         : self.nombre,
            'descripcion'         : self.descripcion,
            'id'         : self.id,
+	   
        }
 
 engine = create_engine('sqlite:///lista_herramienta.db')
