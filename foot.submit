@@ -1,4 +1,5 @@
-executable = ejecucion1.py
+executable =ejecucion1.py
 universe = vanilla
-input = ejecucion1.input
-output = ejecucion1.output
+log = ejecucion.log
+output = ejecucion.out
+queue

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-def crear(executable,universe,inputt,output):
+def crear(executable,universe,log,output):
     str(executable)
     str(universe)
-    str(inputt)
+    str(log)
     str(output)
     
     fo = open("foot.submit", "w")
@@ -13,8 +13,8 @@ def crear(executable,universe,inputt,output):
     fo.write("universe = ")
     fo.write(universe)
     fo.write("\n")
-    fo.write("input = ")
-    fo.write(inputt)
+    fo.write("log = ")
+    fo.write(log)
     fo.write("\n")
     fo.write("output = ")
     fo.write(output)

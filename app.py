@@ -192,11 +192,11 @@ def result():
    if request.method == 'POST':
       executable = request.form['executable']
       universe = request.form['universe']
-      inputt = request.form['input']
+      log = request.form['log']
       output = request.form['output']
-      crear(executable, universe, inputt, output)
+      crear(executable, universe, log, output)
 
-      return render_template("result.html",executable = executable,universe=universe, inputt=inputt, output=output)
+      return render_template("result.html",executable = executable,universe=universe, log=log, output=output)
 
 @app.route('/condor/ejecucion/')
 def ejecucion():
@@ -206,6 +206,7 @@ def ejecucion():
                             stdin=subprocess.PIPE)
 
     out,err = p.communicate()
+    
     return out
 
 
