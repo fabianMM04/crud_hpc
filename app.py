@@ -136,7 +136,7 @@ def estado():
                             stdin=subprocess.PIPE)
 
     out,err = p.communicate()
-    return out
+    return jsonify({"estado": out})
 
 @app.route('/condor/cola')
 def cola():
@@ -146,7 +146,7 @@ def cola():
                             stdin=subprocess.PIPE)
 
     out,err = p.communicate()
-    return out
+    return jsonify({"cola": out})
 
 app.config['UPLOAD_FOLDER'] = ''
 # These are the extension that we are accepting to be uploaded
@@ -207,8 +207,24 @@ def ejecucion():
 
     out,err = p.communicate()
     
-    return out
+    return jsonify({"ejecucion": out})
 
+@app.route('/condor/salida/')
+def salida():
+    file=open("ejecucion.out","r")
+    file_r=file.read()
+
+
+
+    return file_r
+
+
+@app.route('/condor/log/')
+def log():
+    file = open("ejecucion.log", "r")
+    file_r = file.read()
+
+    return file_r
 
 if __name__ == '__main__':
     app.debug = True
