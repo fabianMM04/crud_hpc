@@ -24,25 +24,24 @@ def listaHerramientaJSON():
 def newHerraminta():
     if request.method == 'POST':
         newItem = Herramienta(
-            nombre=request.json['nombre'],  descripcion=request.json['descripcion'], parametros=request.json['parametros'])
+            nombre=request.form['nombre'],  descripcion=request.form['descripcion'], parametros=request.form['parametros'])
         session.add(newItem)
         session.commit()
-        return jsonify(Herramienta=newItem.serialize)
-    
+        return jsonify({'herramienta':newItem })    
     
 @app.route('/herramientas/<int:menu_id>/edit',methods=['GET', 'POST'])
 def editMenuItem(menu_id):
     editedItem = session.query(Herramienta).filter_by(id=menu_id).one()
     if request.method == 'POST':
-        if request.json['nombre']:
-            editedItem.nombre = request.json['nombre']
-        if request.json['descripcion']:
-            editedItem.descripcion = request.json['descripcion']
-        if request.json['parametros']:
-            editedItem.parametros = request.json['parametros']
+        if request.form['nombre']:
+            editedItem.nombre = request.form['nombre']
         session.add(editedItem)
         session.commit()
-        return jsonify(Herramienta=editedItem.serialize)
+        return redirect(url_for('HelloWorld'))
+    else:
+        # USE THE RENDER_TEMPLATE FUNCTION BELOW TO SEE THE VARIABLES YOU
+        # SHOULD USE IN YOUR EDITMENUITEM TEMPLATE
+        return render_template('editmenuitem.html',item=editedItem)
     
 @app.route('/herramientas/<int:menu_id>/delete',methods=['GET', 'POST'])
 def deleteMenuItem(menu_id):
@@ -50,8 +49,10 @@ def deleteMenuItem(menu_id):
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
-        return jsonify({'response': "herramienta eliminada"})
-        
+        return redirect(url_for('HelloWorld'))
+    else:
+        return render_template('deleteconfirmation.html', item=itemToDelete)
+
 @app.route('/proyectos/menu/JSON')
 def listaProyectoJSON():
 	items = session.query(Proyecto).all()
@@ -61,30 +62,38 @@ def listaProyectoJSON():
 def newProyecto():
     if request.method == 'POST':
         newItem = Proyecto(
-            nombre=request.json['nombre'],  descripcion=request.json['descripcion'])
+            nombre=request.form['nombre'],  descripcion=request.form['descripcion'])
         session.add(newItem)
         session.commit()
-        return jsonify(Proyecto=newItem.serialize)    
+        return redirect(url_for('HelloP'))
+    else:
+        return render_template('newproject.html')
+    
     
 @app.route('/proyectos/<int:menu_id>/edit',methods=['GET', 'POST'])
 def editproyect(menu_id):
     editedItem = session.query(Proyecto).filter_by(id=menu_id).one()
     if request.method == 'POST':
-        if request.json['nombre']:
-            editedItem.nombre = request.json['nombre']
-        if request.json['descripcion']:
-            editedItem.descripcion = request.json['descripcion']
+        if request.form['nombre']:
+            editedItem.nombre = request.form['nombre']
         session.add(editedItem)
         session.commit()
-        return jsonify(Proyecto=editedItem.serialize)
- 
+        return redirect(url_for('HelloP'))
+    else:
+        # USE THE RENDER_TEMPLATE FUNCTION BELOW TO SEE THE VARIABLES YOU
+        # SHOULD USE IN YOUR EDITMENUITEM TEMPLATE
+        return render_template('editproject.html',item=editedItem)
+    
 @app.route('/proyectos/<int:menu_id>/delete',methods=['GET', 'POST'])
 def deleteproyecto(menu_id):
     itemToDelete = session.query(Proyecto).filter_by(id=menu_id).one()
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
-        return jsonify({'response': "proyecto eliminada"})
+        return redirect(url_for('HelloP'))
+    else:
+        return render_template('deleteproject.html', item=itemToDelete)
+
     
 @app.route('/')
 @app.route('/hello')
@@ -155,19 +164,19 @@ def upload():
 
 @app.route('/uploader', methods=['POST'])
 def uploader():
-    if request.method == 'POST':
     # Get the name of the uploaded file
-        file = request.files['file']
+    file = request.files['file']
     # Check if the file is one of the allowed types/extensions
-        if file and allowed_file(file.filename):
+    if file and allowed_file(file.filename):
         # Make the filename safe, remove unsupported chars
-            filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename)
         # Move the file form the temporal folder to
         # the upload folder we setup
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         # Redirect the user to the uploaded_file route, which
         # will basicaly show on the browser the uploaded file
-            return jsonify({"archivo": file})
+        return redirect(url_for('uploaded_file',filename=filename))
+
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
