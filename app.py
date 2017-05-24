@@ -149,31 +149,27 @@ def allowed_file(filename):
 def student():
    return render_template("formulario.html")
 
-@app.route('/upload')
+
+@app.route('/upload', methods=['GET','POST'])
 def upload():
-   return render_template('upload.html')
-
-@app.route('/uploader', methods=['POST'])
-def uploader():
-    if request.method == 'POST':
     # Get the name of the uploaded file
-        file = request.files['file']
-    # Check if the file is one of the allowed types/extensions
-        if file and allowed_file(file.filename):
-        # Make the filename safe, remove unsupported chars
-            filename = secure_filename(file.filename)
-        # Move the file form the temporal folder to
-        # the upload folder we setup
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        # Redirect the user to the uploaded_file route, which
-        # will basicaly show on the browser the uploaded file
-            return jsonify({"archivo": file})
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
-
-
+    if request.method=='POST':
+	file = request.files['file']
+        print type(file)
+	# Check if the file is one of the allowed types/extensions
+	if file and allowed_file(file.filename):
+		# Make the filename safe, remove unsupported chars
+		filename = secure_filename(file.filename)
+		# Move the file form the temporal folder to
+		# the upload folder we setup
+		file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+		# Redirect the user to the uploaded_file route, which
+		# will basicaly show on the browser the uploaded file
+		return jsonify({"file": filename})
+    return render_template("upload.html")
+  
+  
 
 @app.route('/condor/crear',methods = ['POST', 'GET'])
 def result():
