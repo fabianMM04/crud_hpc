@@ -1,11 +1,13 @@
 import os
-from flask import Flask, jsonify,  render_template, request, redirect, url_for, send_from_directory, redirect
+from flask import Flask, jsonify,  render_template, request, redirect, url_for, send_from_directory, redirect, g, abort
 from werkzeug import secure_filename
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Herramienta, Proyecto
+from models import Base, Herramienta, Proyecto, User
 from archivo import crear
 import subprocess
+from flask_httpauth import HTTPBasicAuth
+auth = HTTPBasicAuth()
 app = Flask(__name__)
  
 
@@ -155,7 +157,7 @@ def upload():
     # Get the name of the uploaded file
 
     if request.method=='POST':
-	file = request.files['file']
+	file = request.file['file']
         print type(file)
 	# Check if the file is one of the allowed types/extensions
 	if file and allowed_file(file.filename):
@@ -202,6 +204,7 @@ def salida():
 
     return render_template("result.html", json=json)
 
+ 
 
 @app.route('/condor/log/')
 def log():
@@ -209,6 +212,63 @@ def log():
     file_r = file.read()
 
     return jsonify({"log": file_r})
+
+@auth.verify_password
+def verify_password(username_or_token, password):
+    #Try to see if it's a token first
+    user_id = User.verify_auth_token(username_or_token)
+    if user_id:
+        user = session.query(User).filter_by(id = user_id).one()
+    else:
+        user = session.query(User).filter_by(username = username_or_token).first()
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
+
+
+
+@app.route('/token')
+@auth.login_required
+def get_auth_token():
+    token = g.user.generate_auth_token()
+    return jsonify({'token': token.decode('ascii')})
+
+
+
+@app.route('/users', methods = ['POST'])
+def new_user():
+    username = request.json.get('username')
+    password = request.json.get('password')
+    if username is None or password is None:
+        print "missing arguments"
+        abort(400) 
+        
+    if session.query(User).filter_by(username = username).first() is not None:
+        print "existing user"
+        user = session.query(User).filter_by(username=username).first()
+        return jsonify({'message':'user already exists'}), 200#, {'Location': url_for('get_user', id = user.id, _external = True)}
+        
+    user = User(username = username)
+    user.hash_password(password)
+    session.add(user)
+    session.commit()
+    return jsonify({ 'username': user.username }), 201#, {'Location': url_for('get_user', id = user.id, _external = True)}
+
+@app.route('/api/users/<int:id>')
+def get_user(id):
+    user = session.query(User).filter_by(id=id).one()
+    if not user:
+        abort(400)
+    return jsonify({'username': user.username})
+
+@app.route('/api/resource')
+@auth.login_required
+def get_resource():
+   return jsonify({ 'data': 'Hello, %s!' % g.user.username })
+
+
+
 
 if __name__ == '__main__':
     app.debug = True
