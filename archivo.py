@@ -5,8 +5,9 @@ def crear(executable,universe,log,output):
     str(universe)
     str(log)
     str(output)
+    sub = executable.split(".")
     
-    fo = open("foot.submit", "w")
+    fo = open(sub[0]+".submit", "w")
     fo.write("executable = ")
     fo.write(executable)
     fo.write("\n")
@@ -21,4 +22,7 @@ def crear(executable,universe,log,output):
 
 # Close opend file
     fo.close()
+    
+
+
 
