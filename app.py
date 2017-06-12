@@ -138,6 +138,11 @@ def cola():
     out,err = p.communicate()
     return jsonify({"cola": out})
 
+
+@app.route('/condor/file')
+def student():
+   return render_template("formulario.html")
+
 app.config['UPLOAD_FOLDER'] = ''
 # These are the extension that we are accepting to be uploaded
 app.config['ALLOWED_EXTENSIONS'] = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'py','cpp'])
@@ -147,31 +152,25 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
 
-@app.route('/condor/file')
-def student():
-   return render_template("formulario.html")
 
-
-@app.route('/upload', methods=['GET','POST'])
+@app.route('/upload',methods=['GET','POST'])
 def upload():
+    if request.method == 'POST':
     # Get the name of the uploaded file
-
-    if request.method=='POST':
-	file = request.file['file']
-        print type(file)
-	# Check if the file is one of the allowed types/extensions
-	if file and allowed_file(file.filename):
-		# Make the filename safe, remove unsupported chars
-		filename = secure_filename(file.filename)
-		# Move the file form the temporal folder to
-		# the upload folder we setup
-		file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-		# Redirect the user to the uploaded_file route, which
-		# will basicaly show on the browser the uploaded file
-		return jsonify({"file": filename})
+        file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+        if file and allowed_file(file.filename):
+        # Make the filename safe, remove unsupported chars
+            filename = secure_filename(file.filename)
+        # Move the file form the temporal folder to
+        # the upload folder we setup
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Redirect the user to the uploaded_file route, which
+        # will basicaly show on the browser the uploaded file
+            return jsonify({"file": filename})
     return render_template("upload.html")
-  
-  
+
+
 
 @app.route('/condor/crear',methods = ['POST', 'GET'])
 def result():
