@@ -19,7 +19,7 @@ def crear(executable,universe,log,output):
     fo.write("\n")
     fo.write("output = ")
     fo.write(output)
-
+    fo.write("queue")
 # Close opend file
     fo.close()
     
